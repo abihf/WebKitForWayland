@@ -7,9 +7,19 @@ else ()
     add_definitions(-DKEY_INPUT_HANDLING_XKB=1)
 endif ()
 
-add_definitions(-DWPE_BACKEND_BCM_RPI=1)
+if (WTF_PLATFORM_BCM_RPI)
+    add_definitions(-DWPE_BACKEND_BCM_RPI=1)
+else ()
+    add_definitions(-DWPE_BACKEND_BCM_RPI=0)
+endif ()
+
+if (WTF_PLATFORM_WAYLAND)
+    add_definitions(-DWPE_BACKEND_WAYLAND=1)
+else ()
+    add_definitions(-DWPE_BACKEND_WAYLAND=0)
+endif ()
+
 add_definitions(-DWPE_BACKEND_DRM=0)
-add_definitions(-DWPE_BACKEND_WAYLA0ND=0)
 
 set(WPE_INCLUDE_DIRECTORIES
     "${CMAKE_SOURCE_DIR}/Source/WPE/Headers"
@@ -50,16 +60,24 @@ set(WPE_SOURCES
     Source/Input/XKB/KeyboardEventHandlerXKB.cpp
 
     Source/ViewBackend/ViewBackend.cpp
-
-    Source/ViewBackend/BCMRPi/ViewBackendBCMRPi.cpp
-
-    Source/ViewBackend/DRM/ViewBackendDRM.cpp
-
-    Source/ViewBackend/Wayland/ViewBackendWayland.cpp
-    Source/ViewBackend/Wayland/WaylandDisplay.cpp
-    Source/ViewBackend/Wayland/wayland-drm-protocol.c
-    Source/ViewBackend/Wayland/xdg-shell-protocol.c
 )
+
+if (WTF_PLATFORM_BCM_RPI)
+    list(APPEND WPE_SOURCES
+        Source/ViewBackend/BCMRPi/ViewBackendBCMRPi.cpp
+    )
+endif ()
+
+if (WTF_PLATFORM_GBM)
+    list(APPEND
+        Source/ViewBackend/DRM/ViewBackendDRM.cpp
+
+        Source/ViewBackend/Wayland/ViewBackendWayland.cpp
+        Source/ViewBackend/Wayland/WaylandDisplay.cpp
+        Source/ViewBackend/Wayland/wayland-drm-protocol.c
+        Source/ViewBackend/Wayland/xdg-shell-protocol.c WPE_SOURCES
+    )
+endif ()
 
 include_directories(${WPE_INCLUDE_DIRECTORIES})
 add_library(WPE SHARED ${WPE_SOURCES})
